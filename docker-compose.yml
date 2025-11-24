@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  graud:
+    image: ghcr.io/hike05/draug:draug
+    container_name: graud
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3 support
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - DOMAIN=${DOMAIN:-example.com}
+      - NAIVE_USER=${NAIVE_USER:-user}
+      - NAIVE_PASS=${NAIVE_PASS:-password}
+      - EMAIL=${EMAIL:-admin@example.com}
+    networks:
+      - graud_network
+    cap_add:
+      - NET_ADMIN
+    healthcheck:
+      test: ["CMD", "caddy", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+
+networks:
+  graud_network:
+    driver: bridge

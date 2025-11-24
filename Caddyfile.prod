@@ -1,0 +1,28 @@
+{
+	order forward_proxy before route
+	email {$EMAIL}
+}
+
+{$DOMAIN} {
+	tls {$EMAIL}
+	
+	# Forward proxy with naive protocol
+	forward_proxy {
+		basic_auth {$NAIVE_USER} {$NAIVE_PASS}
+		hide_ip
+		hide_via
+		probe_resistance
+	}
+
+	# Rate limiting
+	rate_limit {
+		zone dynamic {
+			key {remote_host}
+			events 100
+			window 1m
+		}
+	}
+
+	# Default response for probe requests
+	respond "Hello" 200
+}

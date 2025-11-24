@@ -1,0 +1,33 @@
+{
+	order forward_proxy before route
+	local_certs
+}
+
+localhost:443 {
+	tls internal
+	
+	# Forward proxy with naive protocol
+	forward_proxy {
+		basic_auth {$NAIVE_USER:user} {$NAIVE_PASS:password}
+		hide_ip
+		hide_via
+		probe_resistance
+	}
+
+	# Rate limiting
+	rate_limit {
+		zone dynamic {
+			key {remote_host}
+			events 100
+			window 1m
+		}
+	}
+
+	# Default response for probe requests
+	respond "Hello" 200
+}
+
+# HTTP redirect to HTTPS
+localhost:80 {
+	redir https://{host}{uri} permanent
+}

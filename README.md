@@ -1,6 +1,6 @@
 # Graud
 
-Production-ready forward proxy stack built on Draug (custom Caddy build) with CrowdSec threat protection.
+Forward proxy stack built on Draug (custom Caddy build) with CrowdSec threat protection.
 
 ## Stack
 

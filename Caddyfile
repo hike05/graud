@@ -1,33 +1,50 @@
 {
-	order forward_proxy before route
-	local_certs
+    order crowdsec before forward_proxy
+    order forward_proxy before route
+
+    servers {
+        metrics
+    }
+
+    crowdsec {
+        api_url http://crowdsec:8080
+        api_key {env.BOUNCER_KEY}
+        ticker_interval 60s
+    }
 }
 
-localhost:443 {
-	tls internal
-	
-	# Forward proxy with naive protocol
-	forward_proxy {
-		basic_auth {$NAIVE_USER:user} {$NAIVE_PASS:password}
-		hide_ip
-		hide_via
-		probe_resistance
-	}
+{$DOMAIN}:443 {
+    tls {$EMAIL} {
+        protocols tls1.2 tls1.3
+    }
 
-	# Rate limiting
-	rate_limit {
-		zone dynamic {
-			key {remote_host}
-			events 100
-			window 1m
-		}
-	}
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
 
-	# Default response for probe requests
-	respond "Hello" 200
+    route {
+        crowdsec
+
+        forward_proxy {
+            basic_auth {$NAIVE_USER} {$NAIVE_PASS}
+            hide_ip
+            hide_via
+            probe_resistance
+        }
+
+        rate_limit {
+            zone dynamic {
+                key {remote_host}
+                events 100
+                window 1m
+            }
+        }
+
+        respond "OK" 200
+    }
 }
 
-# HTTP redirect to HTTPS
-localhost:80 {
-	redir https://{host}{uri} permanent
+{$DOMAIN}:80 {
+    redir https://{host}{uri} permanent
 }

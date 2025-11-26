@@ -1,39 +1,51 @@
-version: '3.8'
-
 services:
   graud:
-    image: ghcr.io/hike05/draug:draug
+    image: ghcr.io/hike05/draug:latest
     container_name: graud
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"  # HTTP/3 support
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      - /var/log/graud:/var/log/caddy
     environment:
-      - DOMAIN=${DOMAIN:-example.com}
-      - NAIVE_USER=${NAIVE_USER:-user}
-      - NAIVE_PASS=${NAIVE_PASS:-password}
-      - EMAIL=${EMAIL:-admin@example.com}
-    networks:
-      - graud_network
+      DOMAIN: ${DOMAIN}
+      EMAIL: ${EMAIL}
+      NAIVE_USER: ${NAIVE_USER}
+      NAIVE_PASS: ${NAIVE_PASS}
+      BOUNCER_KEY: ${BOUNCER_KEY}
     cap_add:
       - NET_ADMIN
+    depends_on:
+      crowdsec:
+        condition: service_healthy
+    networks:
+      - graud_net
+
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: unless-stopped
+    volumes:
+      - ./crowdsec/config:/etc/crowdsec
+      - ./crowdsec/data:/var/lib/crowdsec/data
+      - /var/log:/var/log:ro
     healthcheck:
-      test: ["CMD", "caddy", "version"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "cscli", "version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - graud_net
 
 volumes:
   caddy_data:
-    driver: local
   caddy_config:
-    driver: local
 
 networks:
-  graud_network:
+  graud_net:
     driver: bridge

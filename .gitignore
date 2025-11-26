@@ -1,11 +1,8 @@
 # Environment configuration
 .env
 
-# CrowdSec data and credentials
-crowdsec/data/
-crowdsec/config/local_api_credentials.yaml
-crowdsec/config/online_api_credentials.yaml
-crowdsec/config/acquis.yaml.bak
+# CrowdSec - all config and data generated at runtime
+crowdsec/
 
 # Logs
 *.log

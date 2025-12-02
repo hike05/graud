@@ -60,13 +60,28 @@ Environment variables in `.env`:
 
 ## Client Configuration
 
-Configure your proxy client to connect:
+### NaiveProxy Client (Recommended)
 
-```
-https://username:password@your-domain.com:443
+Download NaiveProxy client: https://github.com/klzgrad/naiveproxy/releases
+
+Create `config.json`:
+```json
+{
+  "listen": ["socks://127.0.0.1:1080", "http://127.0.0.1:8080"],
+  "proxy": "https://username:password@your-domain.com:443",
+  "log": ""
+}
 ```
 
-Supports standard forward proxy protocols.
+Run: `./naive config.json`
+
+Then configure system proxy to use:
+- HTTP/HTTPS: 127.0.0.1:8080
+- SOCKS5: 127.0.0.1:1080
+
+### Why NaiveProxy?
+
+NaiveProxy uses Chromium's network stack to camouflage traffic as regular HTTPS, making it resistant to traffic analysis and censorship.
 
 ## Operations
 

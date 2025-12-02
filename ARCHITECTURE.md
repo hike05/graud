@@ -55,14 +55,14 @@ Graud is a containerized forward proxy stack combining Draug (custom Caddy build
 - **Base**: Custom Caddy build
 - **Ports**: 80/tcp, 443/tcp, 443/udp
 - **Plugins**:
-  - forward_proxy - HTTP/HTTPS proxy functionality
+  - forward_proxy (naive fork) - Chromium-style traffic camouflage
   - caddy-crowdsec-bouncer - CrowdSec integration
-  - rate_limit - Request rate limiting
 - **Purpose**: 
   - TLS termination with automatic HTTPS
   - HTTP/3 (QUIC) support
-  - Forward proxy with authentication
-  - Rate limiting
+  - NaiveProxy-compatible forward proxy
+  - Traffic masquerading as regular HTTPS
+  - CrowdSec threat protection
   - Access logging
 
 ### CrowdSec (crowdsec container)

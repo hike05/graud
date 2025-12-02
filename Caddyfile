@@ -1,50 +1,35 @@
 {
-    order crowdsec before forward_proxy
-    order forward_proxy before route
-
-    servers {
-        metrics
-    }
-
-    crowdsec {
-        api_url http://crowdsec:8080
-        api_key {env.BOUNCER_KEY}
-        ticker_interval 60s
-    }
+  order crowdsec first
+  order forward_proxy before file_server
+  
+  servers {
+    metrics
+  }
+  
+  crowdsec {
+    api_url http://crowdsec:8080
+    api_key {env.BOUNCER_KEY}
+    ticker_interval 60s
+  }
 }
 
-{$DOMAIN}:443 {
-    tls {$EMAIL} {
-        protocols tls1.2 tls1.3
-    }
-
-    log {
-        output file /var/log/caddy/access.log
-        format json
-    }
-
-    route {
-        crowdsec
-
-        forward_proxy {
-            basic_auth {$NAIVE_USER} {$NAIVE_PASS}
-            hide_ip
-            hide_via
-            probe_resistance
-        }
-
-        rate_limit {
-            zone dynamic {
-                key {remote_host}
-                events 100
-                window 1m
-            }
-        }
-
-        respond "OK" 200
-    }
+:443, {$DOMAIN}:443 {
+  tls {$EMAIL}
+  
+  crowdsec
+  
+  forward_proxy {
+    basic_auth {$NAIVE_USER} {$NAIVE_PASS}
+    hide_ip
+    hide_via
+    probe_resistance
+  }
+  
+  file_server {
+    root /var/www/html
+  }
 }
 
-{$DOMAIN}:80 {
-    redir https://{host}{uri} permanent
+:80, {$DOMAIN}:80 {
+  redir https://{host}{uri} permanent
 }
